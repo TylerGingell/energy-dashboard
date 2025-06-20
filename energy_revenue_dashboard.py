@@ -2,24 +2,31 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 
-st.set_page_config(page_title="Multi-MPAN Energy Revenue Dashboard", layout="wide")
-st.title("📊 Multi-MPAN Energy Revenue Dashboard")
+# Branding color from UrbanChain logo
+primary_color = "#00d2c6"
+
+st.set_page_config(page_title="UrbanChain Energy Revenue Dashboard", layout="wide")
+st.markdown(f"<h1 style='color:{primary_color};'>⚡ UrbanChain Energy Revenue Dashboard</h1>", unsafe_allow_html=True)
+
+st.image("UrbanChain Log.png", width=150)
 
 st.markdown("""
-Type your MPAN data below. For each MPAN, enter:
+Enter MPAN data below. For each MPAN, provide:
 - Total volume (kWh)
 - Sleeved % (rest is grid)
 - Export volume (kWh)
+- Total Generation (kWh)
 - Unit rates (p/kWh)
 - Standing charge (£/day)
 """)
 
-# Default data for 2 MPANs
+# Example data
 default_data = pd.DataFrame({
     "MPAN": ["1234567890123", "2345678901234"],
     "Total Volume (kWh)": [100000, 80000],
     "Sleeved %": [50, 40],
     "Export Volume (kWh)": [5000, 10000],
+    "Total Generation (kWh)": [105000, 90000],
     "Sleeved Rate (p/kWh)": [10.0, 9.5],
     "Grid Rate (p/kWh)": [20.0, 19.8],
     "Export Rate (p/kWh)": [8.5, 8.0],
@@ -34,6 +41,7 @@ for _, row in edited_df.iterrows():
     total_volume = row["Total Volume (kWh)"]
     sleeved_pct = row["Sleeved %"]
     export_vol = row["Export Volume (kWh)"]
+    generation = row["Total Generation (kWh)"]
 
     # Rates
     private_rate = row["Sleeved Rate (p/kWh)"]
@@ -44,6 +52,8 @@ for _, row in edited_df.iterrows():
     # Calculations
     sleeved_vol = total_volume * (sleeved_pct / 100)
     grid_vol = total_volume - sleeved_vol
+    spill_vol = max(generation - sleeved_vol, 0)
+    match_pct = (sleeved_vol / generation) * 100 if generation else 0
     revenue_sleeved = sleeved_vol * private_rate / 100
     revenue_grid = grid_vol * grid_rate / 100
     revenue_export = export_vol * spill_rate / 100
@@ -57,6 +67,8 @@ for _, row in edited_df.iterrows():
         "Grid Revenue (£)": revenue_grid,
         "Export Revenue (£)": revenue_export,
         "Standing Charges (£)": standing_charge,
+        "Match %": round(match_pct, 2),
+        "Spill Volume (kWh)": round(spill_vol, 2),
         "Net Revenue (£)": net_revenue
     })
 
@@ -65,11 +77,21 @@ results_df = pd.DataFrame(results)
 st.subheader("📋 Revenue Summary by MPAN")
 st.dataframe(results_df, use_container_width=True)
 
-# Bar chart for net revenue
-st.subheader("💰 Net Revenue Comparison")
-fig, ax = plt.subplots()
-ax.bar(results_df["MPAN"].astype(str), results_df["Net Revenue (£)"])
-ax.set_ylabel("Net Revenue (£)")
-ax.set_title("Net Revenue by MPAN")
-st.pyplot(fig)
+# Chart: Net Revenue
+st.subheader("💰 Net Revenue by MPAN")
+fig1, ax1 = plt.subplots()
+ax1.bar(results_df["MPAN"].astype(str), results_df["Net Revenue (£)"], color=primary_color)
+ax1.set_ylabel("Net Revenue (£)")
+ax1.set_title("Net Revenue")
+st.pyplot(fig1)
+
+# Chart: Match %
+st.subheader("🔁 Match % by MPAN")
+fig2, ax2 = plt.subplots()
+ax2.bar(results_df["MPAN"].astype(str), results_df["Match %"], color=primary_color)
+ax2.set_ylabel("Match %")
+ax2.set_ylim(0, 100)
+ax2.set_title("Generation Matching (%)")
+st.pyplot(fig2)
+
 
