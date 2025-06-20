@@ -1,45 +1,75 @@
-
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 
-st.title("Energy Revenue Dashboard")
+st.set_page_config(page_title="Multi-MPAN Energy Revenue Dashboard", layout="wide")
+st.title("📊 Multi-MPAN Energy Revenue Dashboard")
 
-# Input total consumption
-total_volume = st.number_input("Total Consumption Volume (kWh)", min_value=0.0, value=100000.0)
+st.markdown("""
+Type your MPAN data below. For each MPAN, enter:
+- Total volume (kWh)
+- Sleeved % (rest is grid)
+- Export volume (kWh)
+- Unit rates (p/kWh)
+- Standing charge (£/day)
+""")
 
-# Slider for split
-sleeved_pct = st.slider("Sleeved Volume (%)", 0, 100, 50)
-sleeved_vol = total_volume * (sleeved_pct / 100)
-grid_vol = total_volume - sleeved_vol
+# Default data for 2 MPANs
+default_data = pd.DataFrame({
+    "MPAN": ["1234567890123", "2345678901234"],
+    "Total Volume (kWh)": [100000, 80000],
+    "Sleeved %": [50, 40],
+    "Export Volume (kWh)": [5000, 10000],
+    "Sleeved Rate (p/kWh)": [10.0, 9.5],
+    "Grid Rate (p/kWh)": [20.0, 19.8],
+    "Export Rate (p/kWh)": [8.5, 8.0],
+    "Standing Charge (£/day)": [0.25, 0.30]
+})
 
-# Input export volume
-export_vol = st.number_input("Exported Volume (kWh)", min_value=0.0, value=0.0)
+edited_df = st.data_editor(default_data, num_rows="dynamic", use_container_width=True)
 
-# Input rates
-private_rate = st.number_input("Private Market Rate (p/kWh)", min_value=0.0, value=10.0)
-grid_rate = st.number_input("Grid Rate (p/kWh)", min_value=0.0, value=20.0)
-spill_rate = st.number_input("Spill/Export Rate (p/kWh)", min_value=0.0, value=8.5)
+results = []
+for _, row in edited_df.iterrows():
+    mpan = row["MPAN"]
+    total_volume = row["Total Volume (kWh)"]
+    sleeved_pct = row["Sleeved %"]
+    export_vol = row["Export Volume (kWh)"]
 
-# Calculate revenues
-revenue_sleeved = sleeved_vol * private_rate / 100
-revenue_grid = grid_vol * grid_rate / 100
-revenue_export = export_vol * spill_rate / 100
-total_revenue = revenue_sleeved + revenue_grid + revenue_export
+    # Rates
+    private_rate = row["Sleeved Rate (p/kWh)"]
+    grid_rate = row["Grid Rate (p/kWh)"]
+    spill_rate = row["Export Rate (p/kWh)"]
+    standing_daily = row["Standing Charge (£/day)"]
 
-# Display revenue breakdown
-st.subheader("Revenue Breakdown")
-st.write(f"Sleeved Volume: {sleeved_vol:.2f} kWh @ {private_rate}p → £{revenue_sleeved:.2f}")
-st.write(f"Grid Volume: {grid_vol:.2f} kWh @ {grid_rate}p → £{revenue_grid:.2f}")
-st.write(f"Export Volume: {export_vol:.2f} kWh @ {spill_rate}p → £{revenue_export:.2f}")
-st.markdown("---")
-st.write(f"**Total Revenue: £{total_revenue:.2f}**")
+    # Calculations
+    sleeved_vol = total_volume * (sleeved_pct / 100)
+    grid_vol = total_volume - sleeved_vol
+    revenue_sleeved = sleeved_vol * private_rate / 100
+    revenue_grid = grid_vol * grid_rate / 100
+    revenue_export = export_vol * spill_rate / 100
+    standing_charge = standing_daily * 365
+    total_revenue = revenue_sleeved + revenue_grid + revenue_export
+    net_revenue = total_revenue - standing_charge
 
-# Plotting
+    results.append({
+        "MPAN": mpan,
+        "Sleeved Revenue (£)": revenue_sleeved,
+        "Grid Revenue (£)": revenue_grid,
+        "Export Revenue (£)": revenue_export,
+        "Standing Charges (£)": standing_charge,
+        "Net Revenue (£)": net_revenue
+    })
+
+results_df = pd.DataFrame(results)
+
+st.subheader("📋 Revenue Summary by MPAN")
+st.dataframe(results_df, use_container_width=True)
+
+# Bar chart for net revenue
+st.subheader("💰 Net Revenue Comparison")
 fig, ax = plt.subplots()
-categories = ["Sleeved", "Grid", "Export"]
-revenues = [revenue_sleeved, revenue_grid, revenue_export]
-ax.bar(categories, revenues)
-ax.set_ylabel("Revenue (£)")
-ax.set_title("Revenue Breakdown")
+ax.bar(results_df["MPAN"].astype(str), results_df["Net Revenue (£)"])
+ax.set_ylabel("Net Revenue (£)")
+ax.set_title("Net Revenue by MPAN")
 st.pyplot(fig)
+
