@@ -8,8 +8,6 @@ primary_color = "#00d2c6"
 st.set_page_config(page_title="UrbanChain Energy Revenue Dashboard", layout="wide")
 st.markdown(f"<h1 style='color:{primary_color};'>⚡ UrbanChain Energy Revenue Dashboard</h1>", unsafe_allow_html=True)
 
-st.image("Logo.png", width=150)
-
 st.markdown("""
 Enter MPAN data below. For each MPAN, provide:
 - Total volume (kWh)
