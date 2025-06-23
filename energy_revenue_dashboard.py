@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 st.set_page_config(page_title="UrbanChain Dashboard", layout="wide")
 PRIMARY_COLOR = "#00d2c6"
-st.markdown(f"<h1 style='color:{PRIMARY_COLOR};'>⚡ UrbanChain Dashboard – Manual Gen vs Grid Allocation</h1>", unsafe_allow_html=True)
+st.markdown(f"<h1 style='color:{PRIMARY_COLOR};'>UrbanChain Dashboard -  Gen vs Grid Allocation</h1>", unsafe_allow_html=True)
 
 st.sidebar.header("Rates")
 private_rate = st.sidebar.number_input("Private Market Rate (p/kWh)", value=5.0)
