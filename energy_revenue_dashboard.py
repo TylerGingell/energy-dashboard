@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
 
 st.set_page_config(page_title="UrbanChain Dashboard", layout="wide")
 PRIMARY_COLOR = "#00d2c6"
@@ -120,11 +119,13 @@ ax3.pie([total_transferred, spilled], labels=["To Consumers", "Spilled"],
 ax3.set_title("Generation Use")
 st.pyplot(fig3)
 
-# Match % Heatmap
-st.markdown("#### 🔥 Match % Heatmap")
-heat_df = summary_df[["MPAN", "Match %"]].set_index("MPAN")
+# Match % Bar Chart
+st.markdown("#### 📊 Match % by MPAN")
 fig4, ax4 = plt.subplots()
-sns.heatmap(heat_df, cmap="RdYlGn", annot=True, fmt=".1f", linewidths=0.5, ax=ax4)
+colors = [PRIMARY_COLOR if v >= 85 else '#ff4d4d' for v in summary_df["Match %"]]
+ax4.bar(summary_df["MPAN"].astype(str), summary_df["Match %"], color=colors)
+ax4.set_ylabel("Match %")
+ax4.set_ylim(0, 100)
 ax4.set_title("Match % by MPAN")
 st.pyplot(fig4)
 
@@ -136,7 +137,6 @@ ax5.set_ylabel("Revenue (£)")
 ax5.set_title("Export MPAN Revenue Sources")
 st.pyplot(fig5)
 
-
 # Thermometer chart
 st.markdown("#### 🌡️ Generation Utilisation Thermometer")
 fig6, ax6 = plt.subplots(figsize=(7, 1.2))
@@ -147,7 +147,6 @@ ax6.set_xlabel("kWh")
 ax6.set_title("Total Generation Allocation")
 ax6.legend(loc="upper right")
 st.pyplot(fig6)
-
 
 
 
