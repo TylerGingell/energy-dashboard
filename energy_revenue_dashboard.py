@@ -105,7 +105,7 @@ st.dataframe(export_summary, use_container_width=True)
 # Download Button
 def generate_excel():
     output = BytesIO()
-    with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
+    with pd.ExcelWriter(output, engine="openpyxl") as writer:
         summary_df.to_excel(writer, sheet_name="Import Summary", index=False)
         export_summary.to_excel(writer, sheet_name="Export Summary", index=False)
     output.seek(0)
