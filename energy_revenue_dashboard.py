@@ -6,7 +6,7 @@ from io import BytesIO
 st.set_page_config(page_title="UrbanChain Dashboard", layout="wide")
 PRIMARY_COLOR = "#00d2c6"
 
-st.markdown(f"<h1 style='color:{PRIMARY_COLOR};UrbanChain Dashboard – Manual Gen vs Grid Allocation</h1>", unsafe_allow_html=True)
+st.markdown(f"<h1 style='color:{PRIMARY_COLOR};'>⚡ UrbanChain Dashboard – Manual Gen vs Grid Allocation</h1>", unsafe_allow_html=True)
 
 st.sidebar.header("Rates")
 private_rate = st.sidebar.number_input("Private Market Rate (p/kWh)", value=5.0)
@@ -104,21 +104,6 @@ st.dataframe(filtered_df, use_container_width=True)
 st.subheader("📦 Export MPAN Summary")
 st.dataframe(export_summary, use_container_width=True)
 
-# Download Button
-def generate_excel():
-    output = BytesIO()
-    with pd.ExcelWriter(output) as writer:
-        summary_df.to_excel(writer, sheet_name="Import Summary", index=False)
-        export_summary.to_excel(writer, sheet_name="Export Summary", index=False)
-    output.seek(0)
-    return output
-
-st.download_button(
-    label="📥 Download Summary as Excel",
-    data=generate_excel(),
-    file_name="urbanchain_summary.xlsx",
-    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-)
 
 
 
