@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 st.set_page_config(page_title="UrbanChain Dashboard", layout="wide")
 PRIMARY_COLOR = "#00d2c6"
 
-st.markdown(f"<h1 style='color:{PRIMARY_COLOR};'UrbanChain Dashboard – Manual Gen vs Grid Allocation</h1>", unsafe_allow_html=True)
+st.markdown(f"<h1 style='color:{PRIMARY_COLOR};'>⚡ UrbanChain Dashboard – Manual Gen vs Grid Allocation</h1>", unsafe_allow_html=True)
 
 st.sidebar.header("Rates")
 private_rate = st.sidebar.number_input("Private Market Rate (p/kWh)", value=5.0)
@@ -74,7 +74,7 @@ export_summary = pd.DataFrame([{
 
 # Smart KPI Tiles
 st.markdown("## 🧾 Key Headlines")
-left, right = st.columns([1.3, 2.7])
+left, right = st.columns(2)
 with left:
     st.markdown(f"""
     <div style='background-color: #f9f9f9; padding: 1rem; border-radius: 0.5rem;'>
@@ -86,6 +86,17 @@ with left:
         <p><b>Total Savings:</b> £{(summary_df['Grid Cost (£)'].sum() - summary_df['Gen Cost (£)'].sum()):,.2f}</p>
     </div>
     """, unsafe_allow_html=True)
+
+with right:
+    st.markdown("#### 🌡️ Generation Utilisation ")
+    fig6, ax6 = plt.subplots(figsize=(6.5, 1.2))
+    ax6.barh(["Generation Usage"], [total_transferred], color=PRIMARY_COLOR, label="Transferred to Consumers")
+    ax6.barh(["Generation Usage"], [spilled], left=[total_transferred], color="#888888", label="Spilled to Grid")
+    ax6.set_xlim(0, total_generation)
+    ax6.set_xlabel("kWh")
+    ax6.set_title("Total Generation Allocation")
+    ax6.legend(loc="upper right")
+    st.pyplot(fig6)
 
 # MPAN Filter
 st.markdown("## 🔍 MPAN Filter")
@@ -133,23 +144,27 @@ ax3.pie([total_transferred, spilled], labels=["To Consumers", "Spilled"],
 ax3.set_title("Generation Use")
 st.pyplot(fig3)
 
-st.markdown("#### 📊 Match % by MPAN")
-fig4, ax4 = plt.subplots(figsize=(5, 3))
-colors = [PRIMARY_COLOR if v >= 85 else '#ff4d4d' for v in summary_df["Match %"]]
-ax4.bar(summary_df["MPAN"].astype(str), summary_df["Match %"], color=colors)
-ax4.set_ylabel("Match %")
-ax4.set_ylim(0, 100)
-ax4.set_title("Match % by MPAN")
-st.pyplot(fig4)
+col_match, col_rev = st.columns(2)
 
-st.markdown("#### 💰 Export Revenue Breakdown")
-fig5, ax5 = plt.subplots(figsize=(5, 3))
-ax5.bar(["Private Market", "UC Market"], [private_revenue, uc_revenue], color=[PRIMARY_COLOR, "#888888"])
-ax5.set_ylabel("Revenue (£)")
-ax5.set_title("Export MPAN Revenue Sources")
-st.pyplot(fig5)
+with col_match:
+    st.markdown("#### 📊 Match % by MPAN")
+    fig4, ax4 = plt.subplots(figsize=(5, 3))
+    colors = [PRIMARY_COLOR if v >= 85 else '#ff4d4d' for v in summary_df["Match %"]]
+    ax4.bar(summary_df["MPAN"].astype(str), summary_df["Match %"], color=colors)
+    ax4.set_ylabel("Match %")
+    ax4.set_ylim(0, 100)
+    ax4.set_title("Match % by MPAN")
+    st.pyplot(fig4)
 
-st.markdown("#### 🌡️ Generation Utilisation Thermometer")
+with col_rev:
+    st.markdown("#### 💰 Export Revenue Breakdown")
+    fig5, ax5 = plt.subplots(figsize=(5, 3))
+    ax5.bar(["Private Market", "UC Market"], [private_revenue, uc_revenue], color=[PRIMARY_COLOR, "#888888"])
+    ax5.set_ylabel("Revenue (£)")
+    ax5.set_title("Export MPAN Revenue Sources")
+    st.pyplot(fig5)
+
+st.markdown("#### 🌡️ Generation Utilisation")
 fig6, ax6 = plt.subplots(figsize=(7.5, 1.4))
 ax6.barh(["Generation Usage"], [total_transferred], color=PRIMARY_COLOR, label="Transferred to Consumers")
 ax6.barh(["Generation Usage"], [spilled], left=[total_transferred], color="#888888", label="Spilled to Grid")
