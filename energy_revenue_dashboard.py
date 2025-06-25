@@ -11,7 +11,6 @@ st.sidebar.header("Rates")
 private_rate = st.sidebar.number_input("Private Market Rate (p/kWh)", value=5.0)
 uc_market_rate = st.sidebar.number_input("UC Market Rate (p/kWh)", value=8.5)
 
-# Sample editable data
 default_imports = pd.DataFrame({
     "MPAN": ["1050002056826", "1050002056827"],
     "Total Consumption (kWh)": [66841, 45000],
@@ -29,7 +28,6 @@ default_export = pd.DataFrame({
 import_df = st.data_editor(default_imports, num_rows="dynamic", use_container_width=True)
 export_df = st.data_editor(default_export, num_rows="dynamic", use_container_width=True)
 
-# Calculations
 total_transferred = import_df["From Generation (kWh)"].sum()
 total_generation = export_df["Total Generation (kWh)"].sum()
 spilled = max(total_generation - total_transferred, 0)
@@ -72,7 +70,6 @@ export_summary = pd.DataFrame([{
     "Total Export Revenue (£)": round(total_export_revenue, 2)
 }])
 
-# Smart KPI Tiles
 st.markdown("## 🧾 Key Headlines")
 left, right = st.columns(2)
 with left:
@@ -88,7 +85,7 @@ with left:
     """, unsafe_allow_html=True)
 
 with right:
-    st.markdown("#### 🌡️ Generation Utilisation ")
+    st.markdown("#### 🌡️ Generation Utilisation Thermometer")
     fig6, ax6 = plt.subplots(figsize=(6.5, 1.2))
     ax6.barh(["Generation Usage"], [total_transferred], color=PRIMARY_COLOR, label="Transferred to Consumers")
     ax6.barh(["Generation Usage"], [spilled], left=[total_transferred], color="#888888", label="Spilled to Grid")
@@ -98,21 +95,18 @@ with right:
     ax6.legend(loc="upper right")
     st.pyplot(fig6)
 
-# MPAN Filter
 st.markdown("## 🔍 MPAN Filter")
 mpan_options = ["All"] + sorted(summary_df["MPAN"].astype(str).unique().tolist())
 selected_mpan = st.selectbox("Select MPAN to view details", mpan_options)
 
 filtered_df = summary_df if selected_mpan == "All" else summary_df[summary_df["MPAN"].astype(str) == selected_mpan]
 
-# Tables
 st.subheader("📊 Import MPAN Summary")
 st.dataframe(filtered_df, use_container_width=True)
 
 st.subheader("📦 Export MPAN Summary")
 st.dataframe(export_summary, use_container_width=True)
 
-# Visuals
 st.markdown("---")
 st.markdown("## 📈 Visual Insights")
 
@@ -121,13 +115,18 @@ col1, col2 = st.columns(2)
 with col1:
     st.markdown("#### 🔍 Consumption Split (Gen vs Grid)")
     for _, row in filtered_df.iterrows():
-        fig, ax = plt.subplots(figsize=(4, 4))
-        ax.pie([row["From Gen (kWh)"], row["From Grid (kWh)"]],
-               labels=["Gen", "Grid"],
-               autopct="%1.1f%%",
-               colors=[PRIMARY_COLOR, "#888888"])
-        ax.set_title(f"MPAN {row['MPAN']}")
-        st.pyplot(fig)
+        gen_val = row["From Gen (kWh)"]
+        grid_val = row["From Grid (kWh)"]
+        if gen_val + grid_val > 0:
+            fig, ax = plt.subplots(figsize=(4, 4))
+            ax.pie([gen_val, grid_val],
+                   labels=["Gen", "Grid"],
+                   autopct="%1.1f%%",
+                   colors=[PRIMARY_COLOR, "#888888"])
+            ax.set_title(f"MPAN {row['MPAN']}")
+            st.pyplot(fig)
+        else:
+            st.markdown(f"❗ MPAN {row['MPAN']} has no Gen/Grid split to display.")
 
 with col2:
     st.markdown("#### 💸 Cost Breakdown per MPAN")
@@ -163,16 +162,6 @@ with col_rev:
     ax5.set_ylabel("Revenue (£)")
     ax5.set_title("Export MPAN Revenue Sources")
     st.pyplot(fig5)
-
-st.markdown("#### 🌡️ Generation Utilisation")
-fig6, ax6 = plt.subplots(figsize=(7.5, 1.4))
-ax6.barh(["Generation Usage"], [total_transferred], color=PRIMARY_COLOR, label="Transferred to Consumers")
-ax6.barh(["Generation Usage"], [spilled], left=[total_transferred], color="#888888", label="Spilled to Grid")
-ax6.set_xlim(0, total_generation)
-ax6.set_xlabel("kWh")
-ax6.set_title("Total Generation Allocation")
-ax6.legend(loc="upper right")
-st.pyplot(fig6)
 
 
 
